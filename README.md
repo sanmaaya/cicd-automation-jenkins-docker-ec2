@@ -45,3 +45,22 @@ The Jenkins pipeline automatically handles deployment by running through these s
 4. **Health Check**: Uses `curl` to validate that the container is responding with HTTP 200.
 5. **Deploy**: Confirms successful deployment.
 6. **Cleanup**: Removes dangling images to save disk space.
+
+## Execution Screenshots
+
+Below are the screenshots captured during the execution and deployment of this CI/CD pipeline.
+
+<p align="center">
+  <img src="images/screenshot-1.png" width="800" alt="Execution Screenshot 1"><br>
+  <em>Screenshot 1</em>
+</p>
+
+<p align="center">
+  <img src="images/screenshot-2.png" width="800" alt="Execution Screenshot 2"><br>
+  <em>Screenshot 2</em>
+</p>
+
+<p align="center">
+  <img src="images/screenshot-3.png" width="800" alt="Execution Screenshot 3"><br>
+  <em>Screenshot 3</em>
+</p>
