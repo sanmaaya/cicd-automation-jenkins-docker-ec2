@@ -35,18 +35,17 @@ pipeline {
         stage('Health Check') {
             steps {
                 echo 'Validating container health...'
-                sleep time: 5, unit: 'SECONDS'
-                
-                // Verifies deployment using curl
-                sh """
-                    HTTP_STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80)
-                    if [ "\$HTTP_STATUS" -eq 200 ]; then
-                        echo "Health Check Passed: HTTP 200 OK"
-                    else
-                        echo "Health Check Failed: HTTP \$HTTP_STATUS"
-                        exit 1
-                    fi
-                """
+                sleep 5
+                script {
+                    def status = sh(
+                        script: "curl -s -o /dev/null -w '%{http_code}' http://172.17.0.1:80",
+                        returnStdout: true
+                    ).trim()
+                    echo "HTTP Status: ${status}"
+                    if (status != '200') {
+                        error("Health check failed! HTTP Status: ${status}")
+                    }
+                }
             }
         }
 
