@@ -1,20 +1,10 @@
-FROM node:18-alpine
+# Use the official Nginx Alpine image for a lightweight web server
+FROM nginx:alpine
 
-# Create app directory
-WORKDIR /usr/src/app
+# Copy the frontend files to the default Nginx public HTML directory
+COPY index.html /usr/share/nginx/html/
+COPY style.css /usr/share/nginx/html/
+COPY script.js /usr/share/nginx/html/
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Bundle app source
-COPY . .
-
-# Expose port
-EXPOSE 3000
-
-# Run the app
-CMD [ "npm", "start" ]
+# Expose port 80 to allow external HTTP traffic
+EXPOSE 80

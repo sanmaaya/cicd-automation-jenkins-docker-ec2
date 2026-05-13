@@ -2,87 +2,66 @@ pipeline {
     agent any
 
     environment {
-        // Define variables to be used throughout the pipeline
-        DOCKER_IMAGE = 'node-express-cicd'
-        CONTAINER_NAME = 'node-app-container'
-        HOST_PORT = '80'
-        CONTAINER_PORT = '3000'
+        IMAGE_NAME = 'blog-app-frontend'
+        CONTAINER_NAME = 'blog-app-container'
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                echo 'Cloning source code from GitHub...'
-                // If using Jenkins Multibranch Pipeline, checkout scm is automatic.
-                // For a standard Pipeline job, you can use git url: 'https://github.com/your-repo.git'
+                echo 'Pulling latest source code from GitHub...'
                 checkout scm
-            }
-        }
-
-        stage('Install Dependencies & Test') {
-            steps {
-                echo 'Installing dependencies...'
-                // Using npm from the Jenkins environment to verify dependencies install correctly.
-                // Can also be done within a docker agent if preferred.
-                sh 'npm install'
-                
-                // If we had actual tests, we would run them here
-                // sh 'npm test'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker Image...'
-                sh "docker build -t ${DOCKER_IMAGE}:latest ."
+                echo 'Building Docker Image from Dockerfile...'
+                sh "docker build -t ${IMAGE_NAME} ."
             }
         }
 
-        stage('Deploy Container') {
+        stage('Run Container') {
             steps {
-                echo 'Deploying application to Docker container...'
+                echo 'Stopping existing container (if any)...'
+                sh "docker stop ${CONTAINER_NAME} || true"
+                sh "docker rm ${CONTAINER_NAME} || true"
                 
-                // Stop and remove the existing container if it is already running
-                sh """
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                """
-                
-                // Run the new container, mapping the host port to the container port
-                sh "docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:${CONTAINER_PORT} ${DOCKER_IMAGE}:latest"
+                echo 'Running new container...'
+                sh "docker run -d --name ${CONTAINER_NAME} -p 80:80 ${IMAGE_NAME}"
             }
         }
 
-        stage('Health Validation') {
+        stage('Health Check') {
             steps {
-                echo 'Validating application health...'
+                echo 'Validating container health...'
+                sleep time: 5, unit: 'SECONDS'
                 
-                // Wait for the application to fully start
-                sleep time: 10, unit: 'SECONDS'
-                
-                // Use curl to check the /health endpoint
+                // Verifies deployment using curl
                 sh """
-                    STATUS_CODE=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${HOST_PORT}/health)
-                    if [ "\$STATUS_CODE" != "200" ]; then
-                        echo "Health check failed with HTTP status code: \$STATUS_CODE"
-                        exit 1
+                    HTTP_STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80)
+                    if [ "\$HTTP_STATUS" -eq 200 ]; then
+                        echo "Health Check Passed: HTTP 200 OK"
                     else
-                        echo "Health check passed! HTTP status code: \$STATUS_CODE"
+                        echo "Health Check Failed: HTTP \$HTTP_STATUS"
+                        exit 1
                     fi
                 """
             }
         }
-    }
 
-    post {
-        always {
-            echo 'Pipeline execution has finished.'
+        stage('Deploy') {
+            steps {
+                echo 'Application successfully deployed and verified on Port 80!'
+                echo "Access the Blog App via your EC2 Public IP."
+            }
         }
-        success {
-            echo 'SUCCESS: The deployment completed without errors.'
-        }
-        failure {
-            echo 'FAILED: The deployment failed. Please check the Jenkins build logs.'
+
+        stage('Cleanup') {
+            steps {
+                echo 'Cleaning up dangling Docker images...'
+                sh "docker image prune -f"
+            }
         }
     }
 }
