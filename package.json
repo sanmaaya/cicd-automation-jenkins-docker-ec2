@@ -1,0 +1,13 @@
+{
+  "name": "cicd-automation-jenkins-docker-ec2",
+  "version": "1.0.0",
+  "description": "Node.js Express App for CI/CD with Jenkins, Docker and AWS EC2",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
