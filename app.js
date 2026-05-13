@@ -1,11 +1,15 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Simple API endpoint
 app.get('/api', (req, res) => {
     res.json({ 
-        message: 'Hello from Node.js Express App deployed via Jenkins & Docker on AWS EC2!',
+        message: 'Skyward Aviation API is running smoothly.',
         timestamp: new Date().toISOString()
     });
 });
@@ -18,9 +22,9 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Root endpoint
+// Fallback to serving the index.html for the root route
 app.get('/', (req, res) => {
-    res.send('<h1>Welcome to the CI/CD Automated Web App</h1><p>Navigate to <a href="/api">/api</a> or <a href="/health">/health</a></p>');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(port, () => {
